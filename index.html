@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sovereignty Explorer — EDIH</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ===================== Top institutional band ===================== -->
+  <div class="eu-band">
+    <div class="container eu-band-inner">
+      <svg class="eu-emblem" viewBox="0 0 72 48" aria-hidden="true"></svg>
+      <span class="eu-band-text">An initiative supported by the European Digital Innovation Hubs (EDIH)</span>
+    </div>
+  </div>
+
+  <!-- ===================== Header ===================== -->
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="brand">
+        <h1 class="brand-title">Sovereignty Explorer</h1>
+        <p class="brand-sub">Assess and compare the digital sovereignty of technology suppliers</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== Search & filters ===================== -->
+  <section class="toolbar">
+    <div class="container">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4a6 6 0 104.47 10.03l4.25 4.25 1.41-1.41-4.25-4.25A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/></svg>
+        <input id="search" type="search" placeholder="Search a company, product or service…" autocomplete="off" />
+      </div>
+
+      <div class="filters">
+        <label class="filter">
+          <span>Country</span>
+          <select id="filter-country"><option value="all">All countries</option></select>
+        </label>
+        <label class="filter">
+          <span>Service type</span>
+          <select id="filter-type"><option value="all">All types</option></select>
+        </label>
+        <label class="filter">
+          <span>Sovereignty</span>
+          <select id="filter-tier">
+            <option value="all">All levels</option>
+            <option value="high">High (≥ 75)</option>
+            <option value="medium">Moderate (≥ 50)</option>
+            <option value="low">Low (≥ 25)</option>
+          </select>
+        </label>
+        <label class="filter">
+          <span>Sort by</span>
+          <select id="filter-sort">
+            <option value="score_desc">Sovereignty (high → low)</option>
+            <option value="score_asc">Sovereignty (low → high)</option>
+            <option value="name_asc">Name (A → Z)</option>
+          </select>
+        </label>
+        <button id="reset-filters" class="btn btn-ghost">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Results ===================== -->
+  <main class="container">
+    <p id="result-count" class="result-count"></p>
+    <div id="results" class="results-grid"></div>
+
+    <p class="disclaimer">
+      Proof of concept. The sovereignty assessments shown are indicative and based on demonstration data;
+      they do not constitute an official evaluation of the companies mentioned.
+    </p>
+  </main>
+
+  <!-- ===================== Questionnaire modal ===================== -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>Sovereignty Explorer — POC</span>
+      <span>European Digital Innovation Hubs</span>
+    </div>
+  </footer>
+
+  <script src="js/schema.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/radar.js"></script>
+  <script src="js/emblem.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

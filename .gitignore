@@ -23,3 +23,7 @@ Thumbs.db
 *.key
 *.pem
 secrets/
+
+# Local dev tooling (preview only)
+.claude/
+server.pl
