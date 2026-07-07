@@ -63,6 +63,7 @@ function computeAssessment(schemaKey, answers, allWeights) {
       questions: t.questions,
       levels: t.levels,
       score: weightedAverage(qScores, qWeights),
+      precise,
       questionWeights: t.levels.map((_, qi) =>
         precise && qWeights[qi] != null ? qWeights[qi] : DEFAULT_WEIGHT)
     };

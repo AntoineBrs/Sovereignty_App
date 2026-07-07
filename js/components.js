@@ -42,10 +42,18 @@ function scoreBadge(score, tier, small) {
   </div>`;
 }
 
-function scoreRow(theme) {
+// weight is the domain-level weight actually applied to the overall score
+// (neutral/1 whenever the theme is in per-question "precise" mode).
+function scoreRow(theme, weight) {
   const tier = scoreTier(theme.score);
+  let tag = "";
+  if (theme.precise) {
+    tag = `<span class="prio-precise-tag">Weighted by question</span>`;
+  } else if (weight && weight !== 1) {
+    tag = weightChip(weight);
+  }
   return `<div class="score-row">
-    <span class="score-row-label">${escapeHtml(theme.name)}</span>
+    <span class="score-row-label">${escapeHtml(theme.name)}${tag}</span>
     <span class="score-row-bar"><span style="width:${theme.score}%;background:${tier.color}"></span></span>
     <span class="score-row-val">${theme.score}</span>
   </div>`;
@@ -68,9 +76,10 @@ function assessmentBody(assess, opts) {
   const labels = assess.themes.map(t => o.short ? shortTheme(t.name) : t.name);
   const radar = radarSVG(labels, assess.themes.map(t => t.score),
     { fill: o.fill || "#004494", size: o.size || 260, labelSpace: o.labelSpace || 74 });
+  const rows = assess.themes.map((t, di) => scoreRow(t, assess.domainWeights[di])).join("");
   return `<div class="assess-body">
       <div class="radar-wrap">${radar}</div>
-      <div class="assess-detail">${assess.themes.map(scoreRow).join("")}</div>
+      <div class="assess-detail">${rows}</div>
     </div>`;
 }
 

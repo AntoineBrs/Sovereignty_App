@@ -239,7 +239,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   gap: 9px;
   font-size: 12.5px;
 }
-.score-row-label { color: var(--ink); }
+.score-row-label {
+  color: var(--ink); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.score-row-label .weight-chip, .score-row-label .prio-precise-tag { margin-left: 0; }
 .score-row-bar {
   height: 7px; background: #EDEFF3; border-radius: 4px; overflow: hidden;
 }
