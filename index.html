@@ -60,7 +60,11 @@
           </label>
           <label class="filter">
             <span>Service type</span>
-            <select id="filter-type"><option value="all">All types</option></select>
+            <select id="filter-type">
+              <option value="all">All types</option>
+              <option value="company">Company only</option>
+              <optgroup label="Products &amp; services" id="filter-type-products"></optgroup>
+            </select>
           </label>
           <label class="filter">
             <span>Sovereignty</span>
@@ -91,11 +95,6 @@
             </div>
           </div>
           <div id="sort-cats-chips" class="sort-cats-chips"></div>
-          <p id="sort-cats-hint" class="sort-cats-hint">
-            Pick up to 8 criteria to rank suppliers by what matters to you. When several are selected,
-            companies are ordered by the weighted average of their scores. Use the sliders to make a
-            criterion count more.
-          </p>
         </div>
       </div>
     </div>

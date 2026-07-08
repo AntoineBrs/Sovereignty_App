@@ -50,15 +50,41 @@ function buildExploreFilters() {
   countrySel.length = 1;
   countries.forEach(c => countrySel.add(new Option(c, c)));
 
-  const typeSel = document.getElementById("filter-type");
-  typeSel.length = 1;
-  Object.keys(PRODUCT_TYPES).forEach(t => typeSel.add(new Option(t, t)));
+  const typeGroup = document.getElementById("filter-type-products");
+  typeGroup.innerHTML = "";
+  Object.keys(PRODUCT_TYPES).forEach(t => typeGroup.appendChild(new Option(t, t)));
+}
+
+// Which sort-criteria scope the current "Service type" filter allows.
+// "company" restricts to structural criteria, a product type restricts to
+// product criteria, "all" (or unset) leaves the full set available.
+function allowedSortScope() {
+  if (explore.type === "company") return "structural";
+  if (explore.type !== "all") return "product";
+  return null;
+}
+
+// Drop any selected sort criteria that fall outside the scope now allowed
+// by the "Service type" filter (e.g. switching to "Company only" clears
+// product-level criteria).
+function pruneSortCatsForType() {
+  const scope = allowedSortScope();
+  if (!scope) return;
+  explore.sortCats = explore.sortCats.filter(sc => {
+    const cat = SORT_CATEGORIES.find(c => c.id === sc.id);
+    return cat && cat.scope === scope;
+  });
 }
 
 function bindExploreControls() {
   document.getElementById("search").addEventListener("input", e => { explore.query = e.target.value.trim().toLowerCase(); renderExplore(); });
   document.getElementById("filter-country").addEventListener("change", e => { explore.country = e.target.value; renderExplore(); });
-  document.getElementById("filter-type").addEventListener("change", e => { explore.type = e.target.value; renderExplore(); });
+  document.getElementById("filter-type").addEventListener("change", e => {
+    explore.type = e.target.value;
+    pruneSortCatsForType();
+    renderSortCats();
+    renderExplore();
+  });
   document.getElementById("filter-tier").addEventListener("change", e => { explore.minTier = e.target.value; renderExplore(); });
   document.getElementById("filter-sort").addEventListener("change", e => { explore.sort = e.target.value; renderExplore(); });
   document.getElementById("reset-filters").addEventListener("click", () => {
@@ -145,7 +171,9 @@ function renderSortCatMenu() {
   if (!menu) return;
   menu.innerHTML = "";
   const used = new Set(explore.sortCats.map(s => s.id));
-  const available = SORT_CATEGORIES.filter(c => !used.has(c.id));
+  const scope = allowedSortScope();
+  let available = SORT_CATEGORIES.filter(c => !used.has(c.id));
+  if (scope) available = available.filter(c => c.scope === scope);
   if (!available.length) {
     menu.appendChild(el("div", "sort-cat-menu-empty", "All criteria added"));
     return;
@@ -249,7 +277,9 @@ function filteredCompanies() {
       if (!hay.includes(explore.query)) return false;
     }
     if (explore.country !== "all" && c.country !== explore.country) return false;
-    if (explore.type !== "all" && !c.products.some(p => p.type === explore.type)) return false;
+    // "company" shows every company (structural view only); a product type
+    // keeps only companies that offer a matching product/service.
+    if (explore.type !== "all" && explore.type !== "company" && !c.products.some(p => p.type === explore.type)) return false;
     if (structuralScore(c) < minScore) return false;
     return true;
   });
@@ -294,11 +324,25 @@ function renderExplore() {
 }
 
 function companyCard(company) {
-  const assess = computeAssessment("structural", company.structural.answers, APP.weights);
-  const tier = scoreTier(assess.overall);
+  // Service type filter drives what the card shows:
+  //  - "all"                : structural block + all products (default)
+  //  - "company"             : structural block only, products hidden
+  //  - a product type value  : matching products only, structural hidden
+  const mode = explore.type;
+  const showStructural = mode === "all" || mode === "company";
+  const showProducts = mode !== "company";
+  const productsToShow = (mode === "all" || mode === "company")
+    ? company.products
+    : company.products.filter(p => p.type === mode);
+
   const card = el("article", "card");
 
   const header = el("div", "card-head");
+  let headerBadge = "";
+  if (showStructural) {
+    const assess = computeAssessment("structural", company.structural.answers, APP.weights);
+    headerBadge = scoreBadge(assess.overall, scoreTier(assess.overall));
+  }
   header.innerHTML = `
     <div class="logo" style="background:${company.color}">${escapeHtml(company.initials)}</div>
     <div class="card-head-main">
@@ -308,27 +352,32 @@ function companyCard(company) {
         <span class="card-sector">${escapeHtml(company.sector || "")}</span>
       </div>
     </div>
-    ${scoreBadge(assess.overall, tier)}`;
+    ${headerBadge}`;
   card.appendChild(header);
 
-  const struct = el("div", "assess");
-  struct.innerHTML = `<div class="assess-title">Structural sovereignty</div>
-    ${assessmentBody(assess, { fill: "#004494", size: 260 })}
-    <p class="comment">${escapeHtml(company.structural.comment)}</p>`;
-  card.appendChild(struct);
+  if (showStructural) {
+    const assess = computeAssessment("structural", company.structural.answers, APP.weights);
+    const struct = el("div", "assess");
+    struct.innerHTML = `<div class="assess-title">Structural sovereignty</div>
+      ${assessmentBody(assess, { fill: "#004494", size: 260 })}
+      <p class="comment">${escapeHtml(company.structural.comment)}</p>`;
+    card.appendChild(struct);
 
-  const qBtn = el("button", "btn btn-outline");
-  qBtn.textContent = "View questionnaire";
-  qBtn.addEventListener("click", () => openQuestionnaire(company.name, "Structural Sovereignty", "structural", company.structural.answers));
-  card.appendChild(qBtn);
-
-  const prodWrap = el("div", "products");
-  prodWrap.innerHTML = `<div class="products-title">Products &amp; services (${company.products.length})</div>`;
-  if (company.products.length === 0) {
-    prodWrap.appendChild(el("p", "muted-note", "No product or service declared yet."));
+    const qBtn = el("button", "btn btn-outline");
+    qBtn.textContent = "View questionnaire";
+    qBtn.addEventListener("click", () => openQuestionnaire(company.name, "Structural Sovereignty", "structural", company.structural.answers));
+    card.appendChild(qBtn);
   }
-  company.products.forEach(p => prodWrap.appendChild(productItem(company, p)));
-  card.appendChild(prodWrap);
+
+  if (showProducts) {
+    const prodWrap = el("div", "products");
+    prodWrap.innerHTML = `<div class="products-title">Products &amp; services (${productsToShow.length})</div>`;
+    if (productsToShow.length === 0) {
+      prodWrap.appendChild(el("p", "muted-note", "No product or service declared yet."));
+    }
+    productsToShow.forEach(p => prodWrap.appendChild(productItem(company, p)));
+    card.appendChild(prodWrap);
+  }
 
   return card;
 }
