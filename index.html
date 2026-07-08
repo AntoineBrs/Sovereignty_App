@@ -81,6 +81,22 @@
           </label>
           <button id="reset-filters" class="btn btn-ghost">Reset</button>
         </div>
+
+        <div class="sort-cats">
+          <div class="sort-cats-head">
+            <span class="sort-cats-title">Prioritise by criteria</span>
+            <div class="sort-cats-add-wrap">
+              <button id="add-sort-cat" class="btn btn-outline btn-sm" type="button">+ Add criterion</button>
+              <div id="sort-cat-menu" class="sort-cat-menu" hidden></div>
+            </div>
+          </div>
+          <div id="sort-cats-chips" class="sort-cats-chips"></div>
+          <p id="sort-cats-hint" class="sort-cats-hint">
+            Pick up to 8 criteria to rank suppliers by what matters to you. When several are selected,
+            companies are ordered by the weighted average of their scores. Use the sliders to make a
+            criterion count more.
+          </p>
+        </div>
       </div>
     </div>
 
