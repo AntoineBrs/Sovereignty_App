@@ -41,7 +41,20 @@ function initExplore() {
   buildExploreFilters();
   bindExploreControls();
   renderSortCats();
+  updateScoreLabels();
   explore.bound = true;
+}
+
+// Relabel the Sovereignty tier / Sort by controls to make clear which score
+// they are now based on (structural, or the selected service type).
+function updateScoreLabels() {
+  const suffix = (explore.type === "all" || explore.type === "company") ? "" : ` (${explore.type})`;
+  const tierLabel = document.getElementById("filter-tier-label");
+  if (tierLabel) tierLabel.textContent = "Sovereignty" + suffix;
+  const sortDesc = document.getElementById("filter-sort-desc");
+  const sortAsc = document.getElementById("filter-sort-asc");
+  if (sortDesc) sortDesc.textContent = "Sovereignty" + suffix + " (high → low)";
+  if (sortAsc) sortAsc.textContent = "Sovereignty" + suffix + " (low → high)";
 }
 
 function buildExploreFilters() {
@@ -83,6 +96,7 @@ function bindExploreControls() {
     explore.type = e.target.value;
     pruneSortCatsForType();
     renderSortCats();
+    updateScoreLabels();
     renderExplore();
   });
   document.getElementById("filter-tier").addEventListener("change", e => { explore.minTier = e.target.value; renderExplore(); });
@@ -93,6 +107,7 @@ function bindExploreControls() {
     ["country", "type", "tier"].forEach(k => document.getElementById("filter-" + k).value = "all");
     document.getElementById("filter-sort").value = "score_desc";
     renderSortCats();
+    updateScoreLabels();
     renderExplore();
   });
 
@@ -118,9 +133,12 @@ function categoryScore(company, cat) {
     const theme = assess.themes.find(t => cat.themes.includes(t.name));
     return theme ? theme.score : null;
   }
-  // Product scope: average the matching theme across all of the company's products.
+  // Product scope: average the matching theme across the relevant products.
+  // Once a specific service type is selected in the toolbar, only that
+  // type's products count — it becomes the reference for every score.
+  const relevantProducts = referenceProducts(company);
   const scores = [];
-  company.products.forEach(p => {
+  relevantProducts.forEach(p => {
     const schemaKey = PRODUCT_TYPES[p.type] && PRODUCT_TYPES[p.type].schema;
     if (!schemaKey) return;
     const assess = computeAssessment(schemaKey, p.answers, APP.weights);
@@ -129,6 +147,14 @@ function categoryScore(company, cat) {
   });
   if (!scores.length) return null;
   return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+// Products a company counts towards its "reference" score: all of them by
+// default, or only those matching the selected "Service type" filter.
+function referenceProducts(company) {
+  return (explore.type !== "all" && explore.type !== "company")
+    ? company.products.filter(p => p.type === explore.type)
+    : company.products;
 }
 
 // Weighted average of the selected criteria (missing criterion counts as 0).
@@ -266,6 +292,24 @@ function structuralScore(company) {
   return computeAssessment("structural", company.structural.answers, APP.weights).overall;
 }
 
+// The score every other filter (Sovereignty tier, default Sort by, and the
+// tie-break for weighted criteria) is based on. Defaults to the company's
+// structural score, but once a specific service type is selected in the
+// toolbar, that service's own score (averaged if several products share the
+// type) becomes the reference instead.
+function referenceScore(company) {
+  if (explore.type === "all" || explore.type === "company") {
+    return structuralScore(company);
+  }
+  const matching = referenceProducts(company);
+  if (!matching.length) return 0;
+  const scores = matching.map(p => {
+    const schemaKey = PRODUCT_TYPES[p.type] && PRODUCT_TYPES[p.type].schema;
+    return schemaKey ? computeAssessment(schemaKey, p.answers, APP.weights).overall : 0;
+  });
+  return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+}
+
 function filteredCompanies() {
   const minMap = { all: -1, low: 25, medium: 50, high: 75 };
   const minScore = minMap[explore.minTier];
@@ -280,23 +324,23 @@ function filteredCompanies() {
     // "company" shows every company (structural view only); a product type
     // keeps only companies that offer a matching product/service.
     if (explore.type !== "all" && explore.type !== "company" && !c.products.some(p => p.type === explore.type)) return false;
-    if (structuralScore(c) < minScore) return false;
+    if (referenceScore(c) < minScore) return false;
     return true;
   });
 
   // When criteria are selected, they drive the ranking (overriding "Sort by");
-  // ties fall back to structural sovereignty so the order stays stable.
+  // ties fall back to the reference score so the order stays stable.
   if (explore.sortCats.length > 0) {
     list.sort((a, b) => {
       const diff = relevanceScore(b) - relevanceScore(a);
-      return diff !== 0 ? diff : structuralScore(b) - structuralScore(a);
+      return diff !== 0 ? diff : referenceScore(b) - referenceScore(a);
     });
     return list;
   }
 
   list.sort((a, b) => {
     if (explore.sort === "name_asc") return a.name.localeCompare(b.name);
-    const sa = structuralScore(a), sb = structuralScore(b);
+    const sa = referenceScore(a), sb = referenceScore(b);
     return explore.sort === "score_asc" ? sa - sb : sb - sa;
   });
   return list;
