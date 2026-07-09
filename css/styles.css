@@ -166,34 +166,22 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   border-radius: 999px; padding: 5px 8px 5px 13px;
   color: var(--eu-blue-700); font-size: 13px; font-weight: 600;
 }
-.sort-chip.editing { border-radius: 14px; }
 .sort-chip-label { white-space: nowrap; }
-.sort-chip-weight {
-  background: var(--eu-blue); color: #fff; font-size: 11px; font-weight: 700;
-  border-radius: 999px; padding: 1px 7px;
+.sort-chip-info {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 999px;
+  border: 1.5px solid var(--eu-blue); color: var(--eu-blue);
+  font-size: 10px; font-weight: 700; font-style: italic;
+  cursor: help; line-height: 1;
 }
-.sort-chip-edit, .sort-chip-remove {
+.sort-chip-info:hover { background: var(--eu-blue); color: #fff; }
+.sort-chip-remove {
   display: inline-flex; align-items: center; justify-content: center;
   border: none; background: none; cursor: pointer; color: var(--eu-blue);
   padding: 2px; border-radius: 4px; line-height: 1;
+  font-size: 18px; width: 20px; height: 20px;
 }
-.sort-chip-remove { font-size: 18px; width: 20px; height: 20px; }
-.sort-chip-edit:hover, .sort-chip-remove:hover { background: rgba(0, 68, 148, .14); }
-.sort-chip-gauge {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  padding: 6px 4px 2px; margin-top: 4px;
-  border-top: 1px solid rgba(0, 68, 148, .15);
-}
-.sort-chip-gauge[hidden] { display: none; }
-.sort-chip-gauge-label {
-  font-size: 11px; color: var(--muted);
-  text-transform: uppercase; letter-spacing: .4px; font-weight: 600;
-}
-.sort-chip-range { flex: 1; accent-color: var(--eu-blue); cursor: pointer; }
-.sort-chip-gauge-val {
-  font-variant-numeric: tabular-nums; min-width: 26px; text-align: right;
-  color: var(--eu-blue); font-weight: 700;
-}
+.sort-chip-remove:hover { background: rgba(0, 68, 148, .14); }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -321,6 +309,35 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   font-size: 13px; color: var(--muted); line-height: 1.55;
   background: #F7F8FB; border-left: 3px solid var(--line-strong);
   padding: 10px 12px; border-radius: 0 4px 4px 0;
+}
+
+/* ---------- European governance band ---------- */
+.gov-line {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 12px;
+}
+.gov-label {
+  font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px; color: var(--muted);
+}
+.gov-band {
+  font-size: 13px; font-weight: 700;
+  border-radius: 999px; padding: 3px 12px;
+  border: 1.5px solid currentColor;
+}
+.gov-band.gov-high { color: #1E7A46; background: rgba(30, 122, 70, .08); }
+.gov-band.gov-mid  { color: #B8860B; background: rgba(184, 134, 11, .10); }
+.gov-band.gov-low  { color: #B23A3A; background: rgba(178, 58, 58, .08); }
+
+/* ---------- Tie (equal ranking) badge ---------- */
+.tie-badge {
+  align-self: flex-start;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px;
+  color: var(--eu-blue-700);
+  background: rgba(0, 68, 148, .10);
+  border: 1px dashed var(--eu-blue);
+  border-radius: 999px; padding: 3px 10px;
 }
 
 /* ---------- Radar SVG ---------- */

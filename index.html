@@ -27,24 +27,6 @@
     </div>
   </header>
 
-  <!-- ===================== Primary navigation ===================== -->
-  <nav class="mainnav">
-    <div class="container mainnav-inner">
-      <button class="nav-tab active" data-view="explore">
-        <span class="nav-tab-title">Explore suppliers</span>
-        <span class="nav-tab-sub">Search &amp; compare sovereignty</span>
-      </button>
-      <button class="nav-tab" data-view="priorities">
-        <span class="nav-tab-title">My priorities</span>
-        <span class="nav-tab-sub">Weight what matters to you</span>
-      </button>
-      <button class="nav-tab" data-view="supplier">
-        <span class="nav-tab-title">Supplier space</span>
-        <span class="nav-tab-sub">Add &amp; manage your company</span>
-      </button>
-    </div>
-  </nav>
-
   <!-- ===================== View: Explore ===================== -->
   <section id="view-explore" class="view">
     <div class="toolbar">
@@ -67,20 +49,12 @@
             </select>
           </label>
           <label class="filter">
-            <span id="filter-tier-label">Sovereignty</span>
-            <select id="filter-tier">
+            <span>European governance</span>
+            <select id="filter-gov">
               <option value="all">All levels</option>
-              <option value="high">High (≥ 75)</option>
-              <option value="medium">Moderate (≥ 50)</option>
-              <option value="low">Low (≥ 25)</option>
-            </select>
-          </label>
-          <label class="filter">
-            <span>Sort by</span>
-            <select id="filter-sort">
-              <option value="score_desc" id="filter-sort-desc">Sovereignty (high → low)</option>
-              <option value="score_asc" id="filter-sort-asc">Sovereignty (low → high)</option>
-              <option value="name_asc">Name (A → Z)</option>
+              <option value="2">≥ 90% EU-held</option>
+              <option value="1">50–89% EU-held</option>
+              <option value="0">&lt; 50% EU-held</option>
             </select>
           </label>
           <button id="reset-filters" class="btn btn-ghost">Reset</button>
@@ -102,48 +76,12 @@
     <main class="container">
       <div class="results-head">
         <p id="result-count" class="result-count"></p>
-        <span id="weights-active" class="weights-active" hidden>Custom priorities applied</span>
       </div>
       <div id="results" class="results-grid"></div>
       <p class="disclaimer">
         Proof of concept. The sovereignty assessments shown are indicative and based on demonstration data;
         they do not constitute an official evaluation of the companies mentioned.
       </p>
-    </main>
-  </section>
-
-  <!-- ===================== View: My priorities (SME weights) ===================== -->
-  <section id="view-priorities" class="view" hidden>
-    <main class="container">
-      <div class="page-intro">
-        <h2>My sovereignty priorities</h2>
-        <p>Set how much each criterion matters to your organisation. Give a weight to a whole domain, or
-           expand it to fine-tune individual questions. Every supplier score updates instantly.</p>
-        <div class="weight-legend">
-          <span>Weighting</span>
-          <span class="wl"><b>1</b> Standard</span>
-          <span class="wl"><b>2</b> Important</span>
-          <span class="wl"><b>3</b> Essential</span>
-          <button id="weights-reset" class="btn btn-ghost">Reset all to 1</button>
-        </div>
-      </div>
-      <div id="priorities" class="priorities"></div>
-    </main>
-  </section>
-
-  <!-- ===================== View: Supplier space ===================== -->
-  <section id="view-supplier" class="view" hidden>
-    <main class="container">
-      <div id="supplier-list-view">
-        <div class="page-intro">
-          <h2>Supplier space</h2>
-          <p>Add your company, complete the mandatory structural questionnaire, then declare your
-             products and services. You can edit or delete your entries at any time.</p>
-          <button id="add-company" class="btn btn-primary">+ Add a company</button>
-        </div>
-        <div id="supplier-list" class="supplier-list"></div>
-      </div>
-      <div id="supplier-form-view" hidden></div>
     </main>
   </section>
 
@@ -176,8 +114,6 @@
   <script src="js/emblem.js"></script>
   <script src="js/components.js"></script>
   <script src="js/explorer.js"></script>
-  <script src="js/priorities.js"></script>
-  <script src="js/supplier.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

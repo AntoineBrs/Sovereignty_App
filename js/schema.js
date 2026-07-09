@@ -32,9 +32,9 @@ const SCHEMAS = {
             q: "Is the company majority-owned by EU entities? Do any non-EU minority shareholders hold veto rights or equivalent control mechanisms?",
             guidance: "Look beyond headline ownership at effective control and debt structure.",
             levels: [
-              "Capital predominantly non-EU, or veto rights / control mechanisms held by foreign actors.",
-              "Capital predominantly EU but presence of veto rights or critical non-EU debt.",
-              "100% (or close) of capital and voting rights held by EU entities / citizens; debt held by European actors."
+              "EU/EEA entities hold <50% of capital or voting rights, or non-EU investors exercise effective control.",
+              "EU/EEA entities hold 50 to 89% of capital and voting rights, with no non-EU majority control, but possible minority veto rights, strategic debt, or special governance right",
+              "EU/EEA entities hold ≥90% of capital and voting rights, and no non-EU shareholder holds veto rights, negative control, board control, or equivalent influence. Debt is not subject to non-EU control rights"
             ]
           },
           {
