@@ -296,6 +296,23 @@ function filteredCompanies() {
   return list;
 }
 
+// Distinct colours, one per tied group, so equal-ranked suppliers can be
+// visually matched to each other (no numbers are ever shown).
+const TIE_PALETTE = ["#7C3AED", "#0EA5E9", "#F59E0B", "#DB2777", "#059669", "#EA580C", "#4F46E5", "#B91C1C"];
+
+// Map relevanceKey → colour, only for groups with more than one company,
+// ordered by rank (best-ranked tied group gets the first colour).
+function computeTieColors(list) {
+  const counts = {};
+  list.forEach(c => { const k = relevanceKey(c); counts[k] = (counts[k] || 0) + 1; });
+  const tiedKeys = Object.keys(counts)
+    .filter(k => counts[k] > 1)
+    .sort((a, b) => parseFloat(b) - parseFloat(a));
+  const map = {};
+  tiedKeys.forEach((k, i) => { map[k] = TIE_PALETTE[i % TIE_PALETTE.length]; });
+  return map;
+}
+
 function renderExplore() {
   const list = filteredCompanies();
   const results = document.getElementById("results");
@@ -304,12 +321,7 @@ function renderExplore() {
                       : `${list.length} supplier${list.length > 1 ? "s" : ""} found`;
 
   // Identify tied ranks (only meaningful when criteria are active).
-  const tiedKeys = new Set();
-  if (explore.sortCats.length > 0) {
-    const counts = {};
-    list.forEach(c => { const k = relevanceKey(c); counts[k] = (counts[k] || 0) + 1; });
-    Object.keys(counts).forEach(k => { if (counts[k] > 1) tiedKeys.add(k); });
-  }
+  const tieColors = explore.sortCats.length > 0 ? computeTieColors(list) : {};
 
   results.innerHTML = "";
   if (list.length === 0) {
@@ -317,27 +329,34 @@ function renderExplore() {
     return;
   }
   list.forEach(c => {
-    const tied = explore.sortCats.length > 0 && tiedKeys.has(relevanceKey(c));
-    results.appendChild(companyCard(c, tied));
+    results.appendChild(companyCard(c, tieColors[relevanceKey(c)] || null));
   });
 }
 
-function companyCard(company, tied) {
+function companyCard(company, tieColor) {
   // Service type filter drives what the card shows:
-  //  - "all"                : structural block + all products (default)
+  //  - "all"                : structural block + all products (accordion list)
   //  - "company"             : structural block only, products hidden
-  //  - a product type value  : matching products only, structural hidden
+  //  - a product type value  : structural identity (country + sector) plus
+  //                            that single matching product, shown directly
+  //                            (no accordion — a company never offers more
+  //                            than one product per category).
   const mode = explore.type;
   const showStructural = mode === "all" || mode === "company";
   const showProducts = mode !== "company";
-  const productsToShow = (mode === "all" || mode === "company")
-    ? company.products
-    : company.products.filter(p => p.type === mode);
+  const isProductOnly = mode !== "all" && mode !== "company";
+  const productsToShow = isProductOnly
+    ? company.products.filter(p => p.type === mode)
+    : company.products;
 
   const card = el("article", "card");
 
-  if (tied) {
-    card.appendChild(el("div", "tie-badge", "Ex æquo — equal ranking"));
+  if (tieColor) {
+    card.style.borderTopColor = tieColor;
+    const badge = el("div", "tie-badge");
+    badge.style.setProperty("--tie-color", tieColor);
+    badge.innerHTML = `<span class="tie-dot"></span>Ex æquo — equal ranking`;
+    card.appendChild(badge);
   }
 
   if (showStructural) {
@@ -360,22 +379,58 @@ function companyCard(company, tied) {
     qBtn.addEventListener("click", () =>
       openQuestionnaire(company.sector || "Company", "Structural Sovereignty", "structural", company.structural.answers));
     card.appendChild(qBtn);
+  } else if (isProductOnly) {
+    // Minimal identity header (country + sector), no governance/comment —
+    // those belong to the structural block only.
+    const meta = el("div", "card-meta");
+    meta.innerHTML = `
+      <span class="pill">${escapeHtml(company.countryCode || "")} · ${escapeHtml(company.country || "")}</span>
+      <span class="card-sector">${escapeHtml(company.sector || "")}</span>`;
+    card.appendChild(meta);
   }
 
   if (showProducts) {
-    const prodWrap = el("div", "products");
-    prodWrap.innerHTML = `<div class="products-title">Products &amp; services (${productsToShow.length})</div>`;
-    if (productsToShow.length === 0) {
-      prodWrap.appendChild(el("p", "muted-note", "No product or service declared yet."));
+    if (isProductOnly) {
+      if (productsToShow.length === 0) {
+        card.appendChild(el("p", "muted-note", "No product or service declared yet."));
+      }
+      productsToShow.forEach(p => card.appendChild(productBlock(company, p)));
+    } else {
+      const prodWrap = el("div", "products");
+      prodWrap.innerHTML = `<div class="products-title">Products &amp; services (${productsToShow.length})</div>`;
+      if (productsToShow.length === 0) {
+        prodWrap.appendChild(el("p", "muted-note", "No product or service declared yet."));
+      }
+      productsToShow.forEach(p => prodWrap.appendChild(productAccordionItem(company, p)));
+      card.appendChild(prodWrap);
     }
-    productsToShow.forEach(p => prodWrap.appendChild(productItem(company, p)));
-    card.appendChild(prodWrap);
   }
 
   return card;
 }
 
-function productItem(company, product) {
+// Product shown directly, no accordion — used when the "Service type" filter
+// narrows the view to a single product/service category (type title, radar,
+// comment, questionnaire button).
+function productBlock(company, product) {
+  const schemaKey = PRODUCT_TYPES[product.type].schema;
+  const assess = computeAssessment(schemaKey, product.answers);
+
+  const wrap = el("div", "assess");
+  wrap.innerHTML = `<div class="products-title">${escapeHtml(product.type)}</div>
+    ${assessmentBody(assess, { fill: "#1F6FB2", size: 280, labelSpace: 82, short: true })}
+    <p class="comment">${escapeHtml(product.comment)}</p>`;
+  const btn = el("button", "btn btn-outline");
+  btn.textContent = "View questionnaire";
+  btn.addEventListener("click", () => openQuestionnaire(
+    product.type, SCHEMAS[schemaKey].label, schemaKey, product.answers));
+  wrap.appendChild(btn);
+  return wrap;
+}
+
+// Product shown collapsed inside an accordion — used in the "all types" view,
+// where a company's several products/services are listed together.
+function productAccordionItem(company, product) {
   const schemaKey = PRODUCT_TYPES[product.type].schema;
   const assess = computeAssessment(schemaKey, product.answers);
 
