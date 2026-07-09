@@ -10,11 +10,11 @@
 
 const explore = {
   query: "", country: "all", type: "all", gov: "all",
-  sortCats: [],   // [id, ...] — criteria that drive the ranking (max 8)
+  sortCats: [],   // [id, ...] — criteria that drive the ranking (max 3)
   bound: false
 };
 
-const MAX_SORT_CATS = 8;
+const MAX_SORT_CATS = 3;
 
 // Canonical sort criteria = the 9 sovereignty sub-categories (schema themes).
 // `scope` selects where the answers come from; `themes` lists the theme name(s)
@@ -124,6 +124,7 @@ function bindExploreControls() {
 
   document.getElementById("add-sort-cat").addEventListener("click", e => {
     e.stopPropagation();
+    toggleCriteriaHelp(false);
     toggleSortCatMenu();
   });
   // Close the add-criterion menu when clicking outside it.
@@ -131,6 +132,23 @@ function bindExploreControls() {
     const wrap = document.querySelector(".sort-cats-add-wrap");
     if (wrap && !wrap.contains(e.target)) toggleSortCatMenu(false);
   });
+
+  document.getElementById("sort-cats-help").addEventListener("click", e => {
+    e.stopPropagation();
+    toggleSortCatMenu(false);
+    toggleCriteriaHelp();
+  });
+  // Close the "how does ranking work" popup when clicking outside it.
+  document.addEventListener("click", e => {
+    const wrap = document.querySelector(".sort-cats-help-wrap");
+    if (wrap && !wrap.contains(e.target)) toggleCriteriaHelp(false);
+  });
+}
+
+function toggleCriteriaHelp(force) {
+  const popup = document.getElementById("sort-cats-help-popup");
+  if (!popup) return;
+  popup.hidden = force != null ? !force : !popup.hidden;
 }
 
 // ---------------------------------------------------------------------------
@@ -265,6 +283,25 @@ function renderSortCats() {
 
   const addBtn = document.getElementById("add-sort-cat");
   if (addBtn) addBtn.disabled = explore.sortCats.length >= MAX_SORT_CATS;
+
+  syncTypeFilterAvailability();
+}
+
+function hasProductCriterion() {
+  return explore.sortCats.some(id => {
+    const cat = SORT_CATEGORIES.find(c => c.id === id);
+    return cat && cat.scope === "product";
+  });
+}
+
+// A product-scoped criterion (Security & Encryption, Data Location &
+// Control...) only makes sense while product data stays visible, so the
+// "Company only" service-type option is disabled while one is selected.
+function syncTypeFilterAvailability() {
+  const sel = document.getElementById("filter-type");
+  if (!sel) return;
+  const companyOpt = sel.querySelector('option[value="company"]');
+  if (companyOpt) companyOpt.disabled = hasProductCriterion();
 }
 
 // ---------------------------------------------------------------------------
@@ -319,6 +356,9 @@ function renderExplore() {
   document.getElementById("result-count").textContent =
     list.length === 0 ? "No supplier matches your criteria."
                       : `${list.length} supplier${list.length > 1 ? "s" : ""} found`;
+
+  const sortNote = document.getElementById("result-sort-note");
+  if (sortNote) sortNote.hidden = explore.sortCats.length === 0;
 
   // Identify tied ranks (only meaningful when criteria are active).
   const tieColors = explore.sortCats.length > 0 ? computeTieColors(list) : {};
