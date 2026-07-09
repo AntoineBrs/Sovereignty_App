@@ -87,20 +87,33 @@ function governanceClass(level) {
 // ---------------------------------------------------------------------------
 // Sort-criteria scope, gated by the "Service type" filter
 // ---------------------------------------------------------------------------
-function allowedSortScope() {
-  if (explore.type === "company") return "structural";
-  if (explore.type !== "all") return "product";
-  return null;
+// Rule:
+// - "Company only" → only structural criteria are allowed (product criteria
+//   make no sense without a specific product/service selected).
+// - A specific product type (e.g. SaaS) → structural criteria remain allowed
+//   (the company's structural answers still apply), PLUS only the product
+//   criteria whose theme actually exists in that product type's schema — this
+//   is what keeps "Technological Independence" unavailable for Agency/Service,
+//   since the agency_service schema has no such theme. This does not work in
+//   reverse: "Company only" still excludes all product criteria.
+// - "All types" → every criterion is allowed.
+function isCriterionAllowed(cat) {
+  if (explore.type === "company") return cat.scope === "structural";
+  if (explore.type === "all") return true;
+  if (cat.scope === "structural") return true;
+  const schemaKey = PRODUCT_TYPES[explore.type] && PRODUCT_TYPES[explore.type].schema;
+  const schema = schemaKey && SCHEMAS[schemaKey];
+  if (!schema) return false;
+  return schema.themes.some(t => cat.themes.includes(t.name));
 }
 
-// Drop any selected criteria that fall outside the scope now allowed by the
-// "Service type" filter (e.g. switching to "Company only" clears product ones).
+// Drop any selected criteria that fall outside what's now allowed by the
+// "Service type" filter (e.g. switching to "Company only" clears product ones,
+// switching to "Agency" clears "Technological Independence").
 function pruneSortCatsForType() {
-  const scope = allowedSortScope();
-  if (!scope) return;
   explore.sortCats = explore.sortCats.filter(id => {
     const cat = SORT_CATEGORIES.find(c => c.id === id);
-    return cat && cat.scope === scope;
+    return cat && isCriterionAllowed(cat);
   });
 }
 
@@ -208,6 +221,8 @@ function relevanceKey(company) {
 function addSortCat(id) {
   if (explore.sortCats.length >= MAX_SORT_CATS) return;
   if (explore.sortCats.includes(id)) return;
+  const cat = SORT_CATEGORIES.find(c => c.id === id);
+  if (!cat || !isCriterionAllowed(cat)) return;
   explore.sortCats.push(id);
   renderSortCats();
   renderExplore();
@@ -232,9 +247,7 @@ function renderSortCatMenu() {
   if (!menu) return;
   menu.innerHTML = "";
   const used = new Set(explore.sortCats);
-  const scope = allowedSortScope();
-  let available = SORT_CATEGORIES.filter(c => !used.has(c.id));
-  if (scope) available = available.filter(c => c.scope === scope);
+  let available = SORT_CATEGORIES.filter(c => !used.has(c.id) && isCriterionAllowed(c));
   if (!available.length) {
     menu.appendChild(el("div", "sort-cat-menu-empty", "All criteria added"));
     return;
