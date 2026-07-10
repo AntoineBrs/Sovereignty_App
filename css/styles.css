@@ -715,11 +715,17 @@ body.modal-lock { overflow: hidden; }
 .card-desc { margin: 0; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
 .card-cta { margin-top: auto; font-size: 13px; font-weight: 700; color: var(--eu-blue); letter-spacing: .2px; }
 
-/* ---------- Product-filtered list (single centred column) ---------- */
-.results-grid.results-list {
-  grid-template-columns: 1fr;
-  gap: 10px; max-width: 840px; margin-left: auto; margin-right: auto;
+/* ---------- Product label card (product-filtered list view) ---------- */
+.product-card { transition: box-shadow .15s, border-color .15s; }
+.product-card.expanded { box-shadow: 0 6px 22px rgba(16,30,60,.12); border-color: var(--line-strong); }
+.card-actions { margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+.card-actions .btn { flex: none; }
+.card-detail-panel {
+  margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line-strong);
 }
+.card-detail-panel .sov-eyebrow { margin-top: 0; }
+.card-detail-panel .radar-wrap { max-width: 260px; margin: 0 auto; }
+.card-detail-panel .btn { margin-top: 10px; }
 
 /* ---------- Company detail page ---------- */
 .back-btn { margin: 22px 0 12px; }

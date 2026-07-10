@@ -94,17 +94,13 @@ function governanceClass(level) {
 // Sort-criteria scope, gated by the "Service type" filter
 // ---------------------------------------------------------------------------
 // Rule:
-// - "Company only" → only structural criteria are allowed (product criteria
-//   make no sense without a specific product/service selected).
+// - "All types" → every criterion is allowed (the list shows companies; there
+//   is no single product context to narrow criteria against).
 // - A specific product type (e.g. SaaS) → structural criteria remain allowed
 //   (the company's structural answers still apply), PLUS only the product
 //   criteria whose theme actually exists in that product type's schema — this
-//   is what keeps "Technological Independence" unavailable for Agency/Service,
-//   since the agency_service schema has no such theme. This does not work in
-//   reverse: "Company only" still excludes all product criteria.
-// - "All types" → every criterion is allowed.
+//   is what keeps "Technological Independence" unavailable for Agency/Service.
 function isCriterionAllowed(cat) {
-  if (explore.type === "company") return cat.scope === "structural";
   if (explore.type === "all") return true;
   if (cat.scope === "structural") return true;
   const schemaKey = PRODUCT_TYPES[explore.type] && PRODUCT_TYPES[explore.type].schema;
@@ -114,8 +110,8 @@ function isCriterionAllowed(cat) {
 }
 
 // Drop any selected criteria that fall outside what's now allowed by the
-// "Service type" filter (e.g. switching to "Company only" clears product ones,
-// switching to "Agency" clears "Technological Independence").
+// "Service type" filter (e.g. switching to "Agency" clears "Technological
+// Independence").
 function pruneSortCatsForType() {
   explore.sortCats = explore.sortCats.filter(id => {
     const cat = SORT_CATEGORIES.find(c => c.id === id);
@@ -167,7 +163,7 @@ function toggleCriteriaHelp(force) {
 // Products a company counts towards a product-scoped criterion: all of them by
 // default, or only those matching the selected "Service type" filter.
 function referenceProducts(company) {
-  return (explore.type !== "all" && explore.type !== "company")
+  return explore.type !== "all"
     ? company.products.filter(p => p.type === explore.type)
     : company.products;
 }
@@ -285,25 +281,6 @@ function renderSortCatsPanel() {
     group.appendChild(row);
     panel.appendChild(group);
   });
-
-  syncTypeFilterAvailability();
-}
-
-function hasProductCriterion() {
-  return explore.sortCats.some(id => {
-    const cat = SORT_CATEGORIES.find(c => c.id === id);
-    return cat && cat.scope === "product";
-  });
-}
-
-// A product-scoped criterion (Security & Encryption, Data Location &
-// Control...) only makes sense while product data stays visible, so the
-// "Company only" service-type option is disabled while one is selected.
-function syncTypeFilterAvailability() {
-  const sel = document.getElementById("filter-type");
-  if (!sel) return;
-  const companyOpt = sel.querySelector('option[value="company"]');
-  if (companyOpt) companyOpt.disabled = hasProductCriterion();
 }
 
 // ---------------------------------------------------------------------------
@@ -317,9 +294,8 @@ function filteredCompanies() {
       if (!hay.includes(explore.query)) return false;
     }
     if (explore.country !== "all" && c.country !== explore.country) return false;
-    // "company" shows every company (structural view only); a product type
-    // keeps only companies that offer a matching product/service.
-    if (explore.type !== "all" && explore.type !== "company" && !c.products.some(p => p.type === explore.type)) return false;
+    // A specific product type keeps only companies that offer a matching product/service.
+    if (explore.type !== "all" && !c.products.some(p => p.type === explore.type)) return false;
     // Governance filter is a threshold: ≥ 50% (level ≥ 1) or ≥ 90% (level ≥ 2).
     if (explore.gov !== "all" && governanceLevel(c) < Number(explore.gov)) return false;
     return true;
@@ -377,7 +353,7 @@ function showCompanyDetail(company) {
 function renderExplore() {
   const list = filteredCompanies();
   const results = document.getElementById("results");
-  const isProductView = explore.type !== "all" && explore.type !== "company";
+  const isProductView = explore.type !== "all";
 
   document.getElementById("result-count").textContent =
     list.length === 0 ? "No supplier matches your criteria."
@@ -389,7 +365,7 @@ function renderExplore() {
   // Identify tied ranks (only meaningful when criteria are active).
   const tieColors = explore.sortCats.length > 0 ? computeTieColors(list) : {};
 
-  results.className = "results-grid" + (isProductView ? " results-list" : "");
+  results.className = "results-grid";
   results.innerHTML = "";
   if (list.length === 0) {
     results.innerHTML = `<p class="empty">Try broadening your search or resetting the filters.</p>`;
@@ -397,10 +373,13 @@ function renderExplore() {
   }
 
   if (isProductView) {
-    // One expandable product/service label per matching offering.
+    // Same card layout as the company list: one label per matching offering,
+    // three per row, with description upfront and detail/company access from
+    // this very view (no accordion — a company never offers more than one
+    // product per category).
     list.forEach(c => {
       c.products.filter(p => p.type === explore.type).forEach(p => {
-        results.appendChild(productAccordion(c, p, { showCompany: true }));
+        results.appendChild(productLabelCard(c, p));
       });
     });
   } else {
@@ -444,13 +423,68 @@ function companyLabelCard(company, tieColor) {
   return card;
 }
 
-// Expandable product/service label. Collapsed: label + type + description.
-// Expanded: sovereignty commentary, radar (no numbers), questionnaire and —
-// when shown outside its own company page — a link to the company detail.
-// This is the SAME component used on the company detail page (showCompany=false)
-// and in the product-filtered list (showCompany=true).
-function productAccordion(company, product, opts) {
-  const o = opts || {};
+// Product/service label card — used in the base list once a specific "Service
+// type" filter is active. Same layout as companyLabelCard (label, meta,
+// description, three per row), but since a product isn't a whole company it
+// offers two direct actions instead of a single click-through: expand in
+// place to see the sovereignty detail, or jump straight to the company page.
+function productLabelCard(company, product) {
+  const schemaKey = PRODUCT_TYPES[product.type].schema;
+  const assess = computeAssessment(schemaKey, product.answers);
+
+  const card = el("article", "card product-card");
+
+  const titleText = `${companyLabel(company)} · ${productLabel(company, product)}`;
+  card.appendChild(el("h3", "card-title", escapeHtml(titleText)));
+
+  const meta = el("div", "card-meta");
+  meta.innerHTML = `
+    <span class="pill">${escapeHtml(company.countryCode || "")} · ${escapeHtml(company.country || "")}</span>
+    <span class="card-sector">${escapeHtml(product.type)}</span>`;
+  card.appendChild(meta);
+
+  card.appendChild(el("p", "card-desc", escapeHtml(product.description || "")));
+
+  const actions = el("div", "card-actions");
+  const expandBtn = el("button", "btn btn-outline btn-sm");
+  expandBtn.type = "button";
+  expandBtn.textContent = "View sovereignty details";
+  const companyBtn = el("button", "btn btn-ghost btn-sm");
+  companyBtn.type = "button";
+  companyBtn.textContent = "View company page →";
+  companyBtn.addEventListener("click", () => showCompanyDetail(company));
+  actions.appendChild(expandBtn);
+  actions.appendChild(companyBtn);
+  card.appendChild(actions);
+
+  const panel = el("div", "card-detail-panel");
+  panel.hidden = true;
+  panel.innerHTML = `
+    <div class="sov-eyebrow">Sovereignty assessment</div>
+    <p class="sov-text">${escapeHtml(product.comment)}</p>
+    ${assessmentBody(assess, { fill: "#1F6FB2", size: 260, labelSpace: 78, short: true })}`;
+  const qBtn = el("button", "btn btn-outline");
+  qBtn.type = "button";
+  qBtn.textContent = "View questionnaire";
+  qBtn.addEventListener("click", () => openQuestionnaire(
+    productLabel(company, product) + " — " + product.type, SCHEMAS[schemaKey].label, schemaKey, product.answers));
+  panel.appendChild(qBtn);
+  card.appendChild(panel);
+
+  expandBtn.addEventListener("click", () => {
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    expandBtn.textContent = willOpen ? "Hide sovereignty details" : "View sovereignty details";
+    card.classList.toggle("expanded", willOpen);
+  });
+
+  return card;
+}
+
+// Expandable product/service label used on the company detail page: label +
+// type + description collapsed, sovereignty commentary + radar + questionnaire
+// once expanded.
+function productAccordion(company, product) {
   const schemaKey = PRODUCT_TYPES[product.type].schema;
   const assess = computeAssessment(schemaKey, product.answers);
 
@@ -459,14 +493,10 @@ function productAccordion(company, product, opts) {
   head.type = "button";
   head.setAttribute("aria-expanded", "false");
 
-  const titleText = o.showCompany
-    ? `${companyLabel(company)} · ${productLabel(company, product)}`
-    : productLabel(company, product);
-
   head.innerHTML = `
     <span class="chevron" aria-hidden="true"></span>
     <span class="accordion-main">
-      <span class="accordion-name">${escapeHtml(titleText)}</span>
+      <span class="accordion-name">${escapeHtml(productLabel(company, product))}</span>
       <span class="accordion-desc">${escapeHtml(product.description || "")}</span>
     </span>
     <span class="type-tag">${escapeHtml(product.type)}</span>`;
@@ -487,14 +517,6 @@ function productAccordion(company, product, opts) {
     openQuestionnaire(productLabel(company, product) + " — " + product.type, SCHEMAS[schemaKey].label, schemaKey, product.answers);
   });
   actions.appendChild(qBtn);
-
-  if (o.showCompany) {
-    const cBtn = el("button", "btn btn-ghost");
-    cBtn.type = "button";
-    cBtn.textContent = "View company page →";
-    cBtn.addEventListener("click", e => { e.stopPropagation(); showCompanyDetail(company); });
-    actions.appendChild(cBtn);
-  }
   panel.appendChild(actions);
 
   head.addEventListener("click", () => {
@@ -567,6 +589,6 @@ function renderCompanyDetail(company) {
   if (!company.products.length) {
     psec.appendChild(el("p", "muted-note", "No product or service declared yet."));
   }
-  company.products.forEach(p => psec.appendChild(productAccordion(company, p, { showCompany: false })));
+  company.products.forEach(p => psec.appendChild(productAccordion(company, p)));
   root.appendChild(psec);
 }
