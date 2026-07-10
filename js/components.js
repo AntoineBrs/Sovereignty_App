@@ -22,6 +22,21 @@ function escapeHtml(s) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// ---------------------------------------------------------------------------
+// Anonymised labels — cards never expose the real company or product name.
+// Numbering is stable (based on the load order in APP.companies), so the same
+// supplier keeps the same "Company N" label across filters and views.
+// ---------------------------------------------------------------------------
+function companyLabel(company) {
+  const i = APP.companies.indexOf(company);
+  return "Company " + (i + 1);
+}
+
+function productLabel(company, product) {
+  const i = company.products.indexOf(product);
+  return "Product " + (i + 1);
+}
+
 function toast(message, kind) {
   const t = document.getElementById("toast");
   t.textContent = message;

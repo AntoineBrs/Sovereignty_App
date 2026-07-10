@@ -1,11 +1,17 @@
 // ============================================================================
-// Explore view — anonymised search, filters, company cards, product accordion
+// Explore view — anonymised supplier list + company detail page
 // ----------------------------------------------------------------------------
-// Cards are anonymous: no company or product names, no numeric sovereignty
-// scores. The structural block shows country, sector, European-governance band
-// and a comment. Products keep the radar chart (visual only) plus a comment.
-// Ranking is driven purely by the selected criteria: each criterion is the sum
-// of its questionnaire answer levels (0/1/2); several criteria are averaged.
+// Two views share the same data:
+//  - LIST  : anonymous cards. By default one card per company (label, origin,
+//            keywords, plain-language description — no sovereignty yet). When a
+//            product type is selected, cards become expandable product/service
+//            labels instead. Clicking a card opens the company detail page.
+//  - DETAIL: a single company's sovereignty profile — structural assessment
+//            (governance, explanation, radar, comment, questionnaire) followed
+//            by its products/services as expandable sovereignty panels.
+// Ranking is driven by the selected criteria: each criterion is the sum of its
+// questionnaire answer levels (0/1/2); several criteria are averaged. No number
+// is ever shown — ties are conveyed with matching colours only.
 // ============================================================================
 
 const explore = {
@@ -19,7 +25,7 @@ const MAX_SORT_CATS = 3;
 // Canonical sort criteria = the 9 sovereignty sub-categories (schema themes).
 // `scope` selects where the answers come from; `themes` lists the theme name(s)
 // that map to this criterion (Security is named differently across schemas).
-// `desc` feeds the on-chip "i" tooltip.
+// `desc` feeds the criterion "i" tooltip.
 const SORT_CATEGORIES = [
   { id: "eu_footprint",     label: "European Footprint",                   scope: "structural", themes: ["European Footprint"],
     desc: "Where the company generates revenue, who ultimately owns it and where its governance is anchored." },
@@ -50,7 +56,7 @@ function initExplore() {
   if (explore.bound) return;
   buildExploreFilters();
   bindExploreControls();
-  renderSortCats();
+  renderSortCatsPanel();
   explore.bound = true;
 }
 
@@ -123,7 +129,7 @@ function bindExploreControls() {
   document.getElementById("filter-type").addEventListener("change", e => {
     explore.type = e.target.value;
     pruneSortCatsForType();
-    renderSortCats();
+    renderSortCatsPanel();
     renderExplore();
   });
   document.getElementById("filter-gov").addEventListener("change", e => { explore.gov = e.target.value; renderExplore(); });
@@ -131,24 +137,14 @@ function bindExploreControls() {
     Object.assign(explore, { query: "", country: "all", type: "all", gov: "all", sortCats: [] });
     document.getElementById("search").value = "";
     ["country", "type", "gov"].forEach(k => document.getElementById("filter-" + k).value = "all");
-    renderSortCats();
+    renderSortCatsPanel();
     renderExplore();
   });
 
-  document.getElementById("add-sort-cat").addEventListener("click", e => {
-    e.stopPropagation();
-    toggleCriteriaHelp(false);
-    toggleSortCatMenu();
-  });
-  // Close the add-criterion menu when clicking outside it.
-  document.addEventListener("click", e => {
-    const wrap = document.querySelector(".sort-cats-add-wrap");
-    if (wrap && !wrap.contains(e.target)) toggleSortCatMenu(false);
-  });
+  document.getElementById("back-to-list").addEventListener("click", showList);
 
   document.getElementById("sort-cats-help").addEventListener("click", e => {
     e.stopPropagation();
-    toggleSortCatMenu(false);
     toggleCriteriaHelp();
   });
   // Close the "how does ranking work" popup when clicking outside it.
@@ -218,84 +214,77 @@ function relevanceKey(company) {
   return relevanceValue(company).toFixed(4);
 }
 
-function addSortCat(id) {
-  if (explore.sortCats.length >= MAX_SORT_CATS) return;
-  if (explore.sortCats.includes(id)) return;
+// ---------------------------------------------------------------------------
+// Criteria panel — every criterion is always visible and toggled in place.
+// ---------------------------------------------------------------------------
+function toggleSortCat(id) {
   const cat = SORT_CATEGORIES.find(c => c.id === id);
-  if (!cat || !isCriterionAllowed(cat)) return;
-  explore.sortCats.push(id);
-  renderSortCats();
-  renderExplore();
-}
-
-function removeSortCat(id) {
-  explore.sortCats = explore.sortCats.filter(x => x !== id);
-  renderSortCats();
-  renderExplore();
-}
-
-function toggleSortCatMenu(force) {
-  const menu = document.getElementById("sort-cat-menu");
-  if (!menu) return;
-  const show = force != null ? force : menu.hidden;
-  if (show) renderSortCatMenu();
-  menu.hidden = !show;
-}
-
-function renderSortCatMenu() {
-  const menu = document.getElementById("sort-cat-menu");
-  if (!menu) return;
-  menu.innerHTML = "";
-  const used = new Set(explore.sortCats);
-  let available = SORT_CATEGORIES.filter(c => !used.has(c.id) && isCriterionAllowed(c));
-  if (!available.length) {
-    menu.appendChild(el("div", "sort-cat-menu-empty", "All criteria added"));
-    return;
+  if (!cat) return;
+  if (explore.sortCats.includes(id)) {
+    explore.sortCats = explore.sortCats.filter(x => x !== id);
+  } else {
+    if (explore.sortCats.length >= MAX_SORT_CATS) return;
+    if (!isCriterionAllowed(cat)) return;
+    explore.sortCats.push(id);
   }
-  SORT_CAT_GROUPS.forEach(g => {
-    const items = available.filter(c => c.scope === g.key);
-    if (!items.length) return;
-    menu.appendChild(el("div", "sort-cat-menu-group", g.title));
-    items.forEach(c => {
-      const b = el("button", "sort-cat-menu-item", escapeHtml(c.label));
-      b.type = "button";
-      b.addEventListener("click", () => { addSortCat(c.id); toggleSortCatMenu(false); });
-      menu.appendChild(b);
-    });
-  });
+  renderSortCatsPanel();
+  renderExplore();
 }
 
-function renderSortCats() {
-  const wrap = document.getElementById("sort-cats-chips");
-  if (!wrap) return;
-  wrap.innerHTML = "";
+function renderSortCatsPanel() {
+  const panel = document.getElementById("sort-cats-panel");
+  if (!panel) return;
+  panel.innerHTML = "";
+  const atMax = explore.sortCats.length >= MAX_SORT_CATS;
 
-  explore.sortCats.forEach(id => {
-    const cat = SORT_CATEGORIES.find(c => c.id === id);
-    if (!cat) return;
+  SORT_CAT_GROUPS.forEach(g => {
+    const items = SORT_CATEGORIES.filter(c => c.scope === g.key);
+    if (!items.length) return;
 
-    const chip = el("div", "sort-chip");
-    chip.dataset.id = id;
-    chip.appendChild(el("span", "sort-chip-label", escapeHtml(cat.label)));
+    const group = el("div", "sort-toggle-group");
+    group.appendChild(el("div", "sort-toggle-group-title", escapeHtml(g.title)));
+    const row = el("div", "sort-toggle-row");
 
-    // "i" affordance: hovering reveals the criterion description and states
-    // that the ranking is based on the questionnaire answers.
-    const info = el("span", "sort-chip-info", "i");
-    info.title = cat.desc + " Ranking is based on the questionnaire answers.";
-    info.setAttribute("aria-label", info.title);
-    chip.appendChild(info);
+    items.forEach(c => {
+      const selected = explore.sortCats.includes(c.id);
+      const allowed = isCriterionAllowed(c);
+      const capped = !selected && atMax;             // can't add more than MAX
+      const blocked = !allowed || capped;
 
-    const remove = el("button", "sort-chip-remove", "&times;");
-    remove.type = "button";
-    remove.title = "Remove criterion";
-    remove.addEventListener("click", () => removeSortCat(id));
-    chip.appendChild(remove);
+      const btn = el("button", "sort-toggle"
+        + (selected ? " selected" : "")
+        + (!selected && blocked ? " disabled" : ""));
+      btn.type = "button";
+      btn.setAttribute("aria-pressed", String(selected));
+      btn.appendChild(el("span", "sort-toggle-label", escapeHtml(c.label)));
 
-    wrap.appendChild(chip);
+      const info = el("span", "sort-toggle-info", "i");
+      info.title = c.desc + " Ranking is based on the questionnaire answers.";
+      info.setAttribute("aria-hidden", "true");
+      btn.appendChild(info);
+
+      if (selected) {
+        btn.title = "Selected — click to remove";
+      } else if (!allowed) {
+        btn.title = "Not available for the current service-type filter.";
+      } else if (capped) {
+        btn.title = "You can select up to " + MAX_SORT_CATS + " criteria.";
+      }
+
+      if (selected || allowed) {
+        btn.addEventListener("click", ev => {
+          if (ev.target.classList.contains("sort-toggle-info")) return;
+          toggleSortCat(c.id);
+        });
+      }
+      if (!selected && blocked) btn.disabled = true;
+
+      row.appendChild(btn);
+    });
+
+    group.appendChild(row);
+    panel.appendChild(group);
   });
-
-  const addBtn = document.getElementById("add-sort-cat");
-  if (addBtn) addBtn.disabled = explore.sortCats.length >= MAX_SORT_CATS;
 
   syncTypeFilterAvailability();
 }
@@ -318,12 +307,12 @@ function syncTypeFilterAvailability() {
 }
 
 // ---------------------------------------------------------------------------
-// Filtering & rendering
+// Filtering
 // ---------------------------------------------------------------------------
 function filteredCompanies() {
   let list = APP.companies.filter(c => {
     if (explore.query) {
-      const hay = [c.sector, c.country, ...c.products.map(p => p.type)]
+      const hay = [c.sector, c.country, c.description, ...c.products.map(p => p.type + " " + (p.description || ""))]
         .join(" ").toLowerCase();
       if (!hay.includes(explore.query)) return false;
     }
@@ -331,7 +320,8 @@ function filteredCompanies() {
     // "company" shows every company (structural view only); a product type
     // keeps only companies that offer a matching product/service.
     if (explore.type !== "all" && explore.type !== "company" && !c.products.some(p => p.type === explore.type)) return false;
-    if (explore.gov !== "all" && String(governanceLevel(c)) !== explore.gov) return false;
+    // Governance filter is a threshold: ≥ 50% (level ≥ 1) or ≥ 90% (level ≥ 2).
+    if (explore.gov !== "all" && governanceLevel(c) < Number(explore.gov)) return false;
     return true;
   });
 
@@ -363,9 +353,32 @@ function computeTieColors(list) {
   return map;
 }
 
+// ---------------------------------------------------------------------------
+// View switching (list ⇄ company detail)
+// ---------------------------------------------------------------------------
+function showList() {
+  APP.view = "list";
+  document.getElementById("view-company").hidden = true;
+  document.getElementById("view-explore").hidden = false;
+  window.scrollTo(0, 0);
+}
+
+function showCompanyDetail(company) {
+  APP.view = "company";
+  renderCompanyDetail(company);
+  document.getElementById("view-explore").hidden = true;
+  document.getElementById("view-company").hidden = false;
+  window.scrollTo(0, 0);
+}
+
+// ---------------------------------------------------------------------------
+// List rendering
+// ---------------------------------------------------------------------------
 function renderExplore() {
   const list = filteredCompanies();
   const results = document.getElementById("results");
+  const isProductView = explore.type !== "all" && explore.type !== "company";
+
   document.getElementById("result-count").textContent =
     list.length === 0 ? "No supplier matches your criteria."
                       : `${list.length} supplier${list.length > 1 ? "s" : ""} found`;
@@ -376,33 +389,33 @@ function renderExplore() {
   // Identify tied ranks (only meaningful when criteria are active).
   const tieColors = explore.sortCats.length > 0 ? computeTieColors(list) : {};
 
+  results.className = "results-grid" + (isProductView ? " results-list" : "");
   results.innerHTML = "";
   if (list.length === 0) {
     results.innerHTML = `<p class="empty">Try broadening your search or resetting the filters.</p>`;
     return;
   }
-  list.forEach(c => {
-    results.appendChild(companyCard(c, tieColors[relevanceKey(c)] || null));
-  });
+
+  if (isProductView) {
+    // One expandable product/service label per matching offering.
+    list.forEach(c => {
+      c.products.filter(p => p.type === explore.type).forEach(p => {
+        results.appendChild(productAccordion(c, p, { showCompany: true }));
+      });
+    });
+  } else {
+    // One anonymous company label per supplier.
+    list.forEach(c => results.appendChild(companyLabelCard(c, tieColors[relevanceKey(c)] || null)));
+  }
 }
 
-function companyCard(company, tieColor) {
-  // Service type filter drives what the card shows:
-  //  - "all"                : structural block + all products (accordion list)
-  //  - "company"             : structural block only, products hidden
-  //  - a product type value  : structural identity (country + sector) plus
-  //                            that single matching product, shown directly
-  //                            (no accordion — a company never offers more
-  //                            than one product per category).
-  const mode = explore.type;
-  const showStructural = mode === "all" || mode === "company";
-  const showProducts = mode !== "company";
-  const isProductOnly = mode !== "all" && mode !== "company";
-  const productsToShow = isProductOnly
-    ? company.products.filter(p => p.type === mode)
-    : company.products;
-
-  const card = el("article", "card");
+// Anonymous company label — the default list card. No sovereignty content:
+// just the anonymised name, origin, keywords and a plain-language description.
+// The whole card opens the company's sovereignty profile.
+function companyLabelCard(company, tieColor) {
+  const card = el("article", "card company-card");
+  card.setAttribute("role", "button");
+  card.setAttribute("tabindex", "0");
 
   if (tieColor) {
     card.style.borderTopColor = tieColor;
@@ -412,106 +425,148 @@ function companyCard(company, tieColor) {
     card.appendChild(badge);
   }
 
-  if (showStructural) {
-    const lvl = governanceLevel(company);
-    const struct = el("div", "assess");
-    struct.innerHTML = `
-      <div class="card-meta">
-        <span class="pill">${escapeHtml(company.countryCode || "")} · ${escapeHtml(company.country || "")}</span>
-        <span class="card-sector">${escapeHtml(company.sector || "")}</span>
-      </div>
-      <div class="gov-line">
-        <span class="gov-label">European governance</span>
-        <span class="gov-band ${governanceClass(lvl)}">${governanceLabel(lvl)} EU-held</span>
-      </div>
-      <p class="comment">${escapeHtml(company.structural.comment)}</p>`;
-    card.appendChild(struct);
+  card.appendChild(el("h3", "card-title", escapeHtml(companyLabel(company))));
 
-    const qBtn = el("button", "btn btn-outline");
-    qBtn.textContent = "View questionnaire";
-    qBtn.addEventListener("click", () =>
-      openQuestionnaire(company.sector || "Company", "Structural Sovereignty", "structural", company.structural.answers));
-    card.appendChild(qBtn);
-  } else if (isProductOnly) {
-    // Minimal identity header (country + sector), no governance/comment —
-    // those belong to the structural block only.
-    const meta = el("div", "card-meta");
-    meta.innerHTML = `
-      <span class="pill">${escapeHtml(company.countryCode || "")} · ${escapeHtml(company.country || "")}</span>
-      <span class="card-sector">${escapeHtml(company.sector || "")}</span>`;
-    card.appendChild(meta);
-  }
+  const meta = el("div", "card-meta");
+  meta.innerHTML = `
+    <span class="pill">${escapeHtml(company.countryCode || "")} · ${escapeHtml(company.country || "")}</span>
+    <span class="card-sector">${escapeHtml(company.sector || "")}</span>`;
+  card.appendChild(meta);
 
-  if (showProducts) {
-    if (isProductOnly) {
-      if (productsToShow.length === 0) {
-        card.appendChild(el("p", "muted-note", "No product or service declared yet."));
-      }
-      productsToShow.forEach(p => card.appendChild(productBlock(company, p)));
-    } else {
-      const prodWrap = el("div", "products");
-      prodWrap.innerHTML = `<div class="products-title">Products &amp; services (${productsToShow.length})</div>`;
-      if (productsToShow.length === 0) {
-        prodWrap.appendChild(el("p", "muted-note", "No product or service declared yet."));
-      }
-      productsToShow.forEach(p => prodWrap.appendChild(productAccordionItem(company, p)));
-      card.appendChild(prodWrap);
-    }
-  }
+  card.appendChild(el("p", "card-desc", escapeHtml(company.description || "")));
+  card.appendChild(el("div", "card-cta", "View sovereignty profile →"));
 
+  const open = () => showCompanyDetail(company);
+  card.addEventListener("click", open);
+  card.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+  });
   return card;
 }
 
-// Product shown directly, no accordion — used when the "Service type" filter
-// narrows the view to a single product/service category (type title, radar,
-// comment, questionnaire button).
-function productBlock(company, product) {
-  const schemaKey = PRODUCT_TYPES[product.type].schema;
-  const assess = computeAssessment(schemaKey, product.answers);
-
-  const wrap = el("div", "assess");
-  wrap.innerHTML = `<div class="products-title">${escapeHtml(product.type)}</div>
-    ${assessmentBody(assess, { fill: "#1F6FB2", size: 280, labelSpace: 82, short: true })}
-    <p class="comment">${escapeHtml(product.comment)}</p>`;
-  const btn = el("button", "btn btn-outline");
-  btn.textContent = "View questionnaire";
-  btn.addEventListener("click", () => openQuestionnaire(
-    product.type, SCHEMAS[schemaKey].label, schemaKey, product.answers));
-  wrap.appendChild(btn);
-  return wrap;
-}
-
-// Product shown collapsed inside an accordion — used in the "all types" view,
-// where a company's several products/services are listed together.
-function productAccordionItem(company, product) {
+// Expandable product/service label. Collapsed: label + type + description.
+// Expanded: sovereignty commentary, radar (no numbers), questionnaire and —
+// when shown outside its own company page — a link to the company detail.
+// This is the SAME component used on the company detail page (showCompany=false)
+// and in the product-filtered list (showCompany=true).
+function productAccordion(company, product, opts) {
+  const o = opts || {};
   const schemaKey = PRODUCT_TYPES[product.type].schema;
   const assess = computeAssessment(schemaKey, product.answers);
 
   const item = el("div", "accordion");
-  const btn = el("button", "accordion-head");
-  btn.setAttribute("aria-expanded", "false");
-  btn.innerHTML = `
+  const head = el("button", "accordion-head");
+  head.type = "button";
+  head.setAttribute("aria-expanded", "false");
+
+  const titleText = o.showCompany
+    ? `${companyLabel(company)} · ${productLabel(company, product)}`
+    : productLabel(company, product);
+
+  head.innerHTML = `
     <span class="chevron" aria-hidden="true"></span>
-    <span class="accordion-name">${escapeHtml(product.type)}</span>`;
+    <span class="accordion-main">
+      <span class="accordion-name">${escapeHtml(titleText)}</span>
+      <span class="accordion-desc">${escapeHtml(product.description || "")}</span>
+    </span>
+    <span class="type-tag">${escapeHtml(product.type)}</span>`;
 
   const panel = el("div", "accordion-panel");
   panel.hidden = true;
-  panel.innerHTML = `${assessmentBody(assess, { fill: "#1F6FB2", size: 280, labelSpace: 82, short: true })}
-    <p class="comment">${escapeHtml(product.comment)}</p>`;
-  const pBtn = el("button", "btn btn-outline");
-  pBtn.textContent = "View questionnaire";
-  pBtn.addEventListener("click", () => openQuestionnaire(
-    product.type, SCHEMAS[schemaKey].label, schemaKey, product.answers));
-  panel.appendChild(pBtn);
+  panel.innerHTML = `
+    <div class="sov-eyebrow">Sovereignty assessment</div>
+    <p class="sov-text">${escapeHtml(product.comment)}</p>
+    ${assessmentBody(assess, { fill: "#1F6FB2", size: 280, labelSpace: 82, short: true })}`;
 
-  btn.addEventListener("click", () => {
-    const open = btn.getAttribute("aria-expanded") === "true";
-    btn.setAttribute("aria-expanded", String(!open));
+  const actions = el("div", "panel-actions");
+  const qBtn = el("button", "btn btn-outline");
+  qBtn.type = "button";
+  qBtn.textContent = "View questionnaire";
+  qBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    openQuestionnaire(productLabel(company, product) + " — " + product.type, SCHEMAS[schemaKey].label, schemaKey, product.answers);
+  });
+  actions.appendChild(qBtn);
+
+  if (o.showCompany) {
+    const cBtn = el("button", "btn btn-ghost");
+    cBtn.type = "button";
+    cBtn.textContent = "View company page →";
+    cBtn.addEventListener("click", e => { e.stopPropagation(); showCompanyDetail(company); });
+    actions.appendChild(cBtn);
+  }
+  panel.appendChild(actions);
+
+  head.addEventListener("click", () => {
+    const open = head.getAttribute("aria-expanded") === "true";
+    head.setAttribute("aria-expanded", String(!open));
     panel.hidden = open;
     item.classList.toggle("open", !open);
   });
 
-  item.appendChild(btn);
+  item.appendChild(head);
   item.appendChild(panel);
   return item;
+}
+
+// ---------------------------------------------------------------------------
+// Company detail page
+// ---------------------------------------------------------------------------
+function renderCompanyDetail(company) {
+  const root = document.getElementById("company-detail");
+  if (!root) return;
+  const lvl = governanceLevel(company);
+  const structAssess = computeAssessment("structural", company.structural.answers);
+  root.innerHTML = "";
+
+  // Header — anonymised identity + plain-language description (no sovereignty).
+  const header = el("div", "detail-header");
+  header.innerHTML = `
+    <h2 class="detail-title">${escapeHtml(companyLabel(company))}</h2>
+    <div class="card-meta">
+      <span class="pill">${escapeHtml(company.countryCode || "")} · ${escapeHtml(company.country || "")}</span>
+      <span class="card-sector">${escapeHtml(company.sector || "")}</span>
+    </div>
+    <p class="detail-desc">${escapeHtml(company.description || "")}</p>`;
+  root.appendChild(header);
+
+  // Structural sovereignty section.
+  const sec = el("section", "detail-section");
+  sec.innerHTML = `
+    <h3 class="detail-section-title">Structural sovereignty</h3>
+    <div class="eval-explainer">
+      <p>This assessment looks at the <strong>company as a whole</strong>, independently of any product. It is built from a questionnaire covering three areas — European footprint (ownership, governance and where value is created), independence from extraterritorial law, and research &amp; open-source involvement.</p>
+      <p>Each answer is graded on a 0–2 sovereignty scale; the profile below reflects those answers. Figures are intentionally not shown — the aim is to compare postures, not to publish a score.</p>
+    </div>
+    <div class="gov-line">
+      <span class="gov-label">European governance</span>
+      <span class="gov-band ${governanceClass(lvl)}">${governanceLabel(lvl)} EU-held</span>
+    </div>`;
+
+  const radarWrap = el("div", "detail-radar");
+  radarWrap.innerHTML = assessmentBody(structAssess, { fill: "#004494", size: 300, labelSpace: 84, short: false });
+  sec.appendChild(radarWrap);
+
+  const sov = el("p", "sov-text");
+  sov.textContent = company.structural.comment;
+  sec.appendChild(sov);
+
+  const qBtn = el("button", "btn btn-outline");
+  qBtn.type = "button";
+  qBtn.textContent = "View structural questionnaire";
+  qBtn.addEventListener("click", () =>
+    openQuestionnaire(companyLabel(company), "Structural Sovereignty", "structural", company.structural.answers));
+  sec.appendChild(qBtn);
+  root.appendChild(sec);
+
+  // Products & services section.
+  const psec = el("section", "detail-section");
+  psec.innerHTML = `
+    <h3 class="detail-section-title">Products &amp; services (${company.products.length})</h3>
+    <p class="detail-section-intro">Expand an offering to see its sovereignty profile. Each product is assessed with a questionnaire tailored to its category.</p>`;
+  if (!company.products.length) {
+    psec.appendChild(el("p", "muted-note", "No product or service declared yet."));
+  }
+  company.products.forEach(p => psec.appendChild(productAccordion(company, p, { showCompany: false })));
+  root.appendChild(psec);
 }

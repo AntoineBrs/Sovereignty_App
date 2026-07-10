@@ -52,9 +52,8 @@
             <span>European governance</span>
             <select id="filter-gov">
               <option value="all">All levels</option>
+              <option value="1">≥ 50% EU-held</option>
               <option value="2">≥ 90% EU-held</option>
-              <option value="1">50–89% EU-held</option>
-              <option value="0">&lt; 50% EU-held</option>
             </select>
           </label>
           <button id="reset-filters" class="btn btn-ghost">Reset</button>
@@ -63,20 +62,17 @@
         <div class="sort-cats">
           <div class="sort-cats-head">
             <span class="sort-cats-title">Prioritise by criteria</span>
-            <div class="sort-cats-add-wrap">
-              <button id="add-sort-cat" class="btn btn-outline btn-sm" type="button">+ Add criterion</button>
-              <div id="sort-cat-menu" class="sort-cat-menu" hidden></div>
-            </div>
+            <span class="sort-cats-hint">Select up to 3 — suppliers are ranked from most to least relevant</span>
             <div class="sort-cats-help-wrap">
               <button id="sort-cats-help" class="sort-cats-help-btn" type="button" aria-label="How does criteria ranking work?">i</button>
               <div id="sort-cats-help-popup" class="sort-cats-help-popup" hidden>
                 <p>Selecting a criterion ranks suppliers from the most to the least relevant on that criterion, based on their questionnaire answers — the sum of the 0–2 answer levels for its questions.</p>
                 <p>Selecting several criteria (up to 3) ranks suppliers by the average of their results across all of them.</p>
-                <p>Suppliers with the exact same result are marked as tied, shown with a matching colour — never with a number.</p>
+                <p>Greyed-out criteria are not available for the current service-type filter. Suppliers with the exact same result are marked as tied, shown with a matching colour — never with a number.</p>
               </div>
             </div>
           </div>
-          <div id="sort-cats-chips" class="sort-cats-chips"></div>
+          <div id="sort-cats-panel" class="sort-toggles"></div>
         </div>
       </div>
     </div>
@@ -87,6 +83,18 @@
         <span id="result-sort-note" class="result-sort-note" hidden>Sorted from most to least relevant on the selected criteria</span>
       </div>
       <div id="results" class="results-grid"></div>
+      <p class="disclaimer">
+        Proof of concept. The sovereignty assessments shown are indicative and based on demonstration data;
+        they do not constitute an official evaluation of the companies mentioned.
+      </p>
+    </main>
+  </section>
+
+  <!-- ===================== View: Company detail ===================== -->
+  <section id="view-company" class="view" hidden>
+    <main class="container">
+      <button id="back-to-list" class="btn btn-ghost back-btn" type="button">← Back to suppliers</button>
+      <div id="company-detail"></div>
       <p class="disclaimer">
         Proof of concept. The sovereignty assessments shown are indicative and based on demonstration data;
         they do not constitute an official evaluation of the companies mentioned.

@@ -160,6 +160,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
 .sort-cat-menu-item:hover { background: rgba(0, 68, 148, .08); color: var(--eu-blue); }
 .sort-cat-menu-empty { padding: 10px 8px; font-size: 13px; color: var(--muted); }
 
+.sort-cats-hint { font-size: 12px; color: var(--muted); }
+
 .sort-cats-help-wrap { position: relative; }
 .sort-cats-help-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -677,3 +679,90 @@ body.modal-lock { overflow: hidden; }
   .nav-tab.active { border-left-color: var(--eu-blue); border-bottom-color: transparent; }
   .supplier-row { flex-direction: column; align-items: stretch; }
 }
+
+/* ==========================================================================
+   Redesign — always-on criteria toggles, company labels, detail page
+   ========================================================================== */
+
+/* ---------- Criteria toggles (replace the add-menu + chips) ---------- */
+.sort-toggles { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.sort-toggle-group-title {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--muted); font-weight: 700; margin-bottom: 6px;
+}
+.sort-toggle-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.sort-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #fff; border: 1.5px solid var(--line-strong); border-radius: 999px;
+  padding: 6px 11px 6px 13px; font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--ink); cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.sort-toggle:hover:not(.disabled):not(.selected) { border-color: var(--eu-blue); color: var(--eu-blue); }
+.sort-toggle.selected { background: var(--eu-blue); border-color: var(--eu-blue); color: #fff; }
+.sort-toggle.disabled { opacity: .45; cursor: not-allowed; background: #F5F6F9; }
+.sort-toggle-info {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 999px; border: 1.5px solid currentColor;
+  font-size: 10px; font-weight: 700; font-style: italic; line-height: 1; cursor: help;
+}
+.sort-toggle.selected .sort-toggle-info { border-color: #fff; color: #fff; }
+
+/* ---------- Company label card (list view) ---------- */
+.company-card { cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+.company-card:hover { box-shadow: 0 6px 22px rgba(16,30,60,.12); border-color: var(--line-strong); }
+.company-card:focus-visible { outline: 2px solid var(--eu-blue); outline-offset: 2px; }
+.card-desc { margin: 0; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+.card-cta { margin-top: auto; font-size: 13px; font-weight: 700; color: var(--eu-blue); letter-spacing: .2px; }
+
+/* ---------- Product-filtered list (single centred column) ---------- */
+.results-grid.results-list {
+  grid-template-columns: 1fr;
+  gap: 10px; max-width: 840px; margin-left: auto; margin-right: auto;
+}
+
+/* ---------- Company detail page ---------- */
+.back-btn { margin: 22px 0 12px; }
+.detail-header {
+  background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--eu-blue);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; margin-bottom: 20px;
+}
+.detail-title { font-size: 24px; color: var(--eu-blue); }
+.detail-header .card-meta { margin-top: 8px; }
+.detail-desc { margin: 12px 0 0; font-size: 14.5px; color: var(--ink); line-height: 1.6; max-width: 760px; }
+
+.detail-section {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 20px 22px; margin-bottom: 20px;
+}
+.detail-section-title { font-size: 18px; color: var(--ink); margin-bottom: 12px; }
+.detail-section-intro { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; }
+
+.eval-explainer {
+  background: #F4F7FB; border: 1px solid var(--line); border-left: 3px solid var(--eu-blue);
+  border-radius: 0 5px 5px 0; padding: 12px 14px; margin-bottom: 16px;
+}
+.eval-explainer p { margin: 0 0 8px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+.eval-explainer p:last-child { margin-bottom: 0; }
+
+.detail-radar { margin: 12px 0 4px; }
+.detail-radar .radar-wrap { max-width: 340px; margin: 0 auto; }
+.sov-text {
+  margin: 14px 0; font-size: 13.5px; color: var(--ink); line-height: 1.6;
+  background: #F7F8FB; border-left: 3px solid var(--line-strong);
+  padding: 12px 14px; border-radius: 0 4px 4px 0;
+}
+
+/* ---------- Product accordion enhancements (label + description) ---------- */
+.accordion-head { align-items: flex-start; }
+.accordion-head .chevron { margin-top: 5px; }
+.accordion-head .type-tag { margin-top: 2px; }
+.accordion-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.accordion-desc { font-size: 12.5px; color: var(--muted); font-weight: 400; line-height: 1.45; }
+
+.sov-eyebrow {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--eu-blue); margin-bottom: 6px;
+}
+.panel-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
