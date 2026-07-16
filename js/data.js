@@ -320,7 +320,7 @@ const COMPANIES = [
       {
         name: "Esker Procure-to-Pay AI Assistant",
         type: "SaaS",
-        description: "An AI assistant embedded in Esker's procurement automation suite that aggregates public supplier and market data, suggests alternative suppliers and generates price-evolution dashboards to support purchasing teams.",
+        description: "An AI assistant integrated into a procurement and accounts-payable automation suite, aggregating public supplier and market data, suggesting alternative suppliers and generating price-evolution dashboards to support purchasing teams.",
         answers: [2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1],
         comment: "AI-driven procurement and AP automation product built on EU-hosted infrastructure with sovereign key handling, exhaustive sub-processor disclosure and full audit rights. Residual exposure comes from the US subsidiary serving non-EU customers and a dependency-audit process still being formalised."
       }
