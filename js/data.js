@@ -137,7 +137,7 @@ const COMPANIES = [
     products: [
       {
         name: "Databricks Data Intelligence Platform",
-        type: "SaaS",
+        type: "Software",
         description: "A unified analytics platform that brings together data engineering, data warehousing and machine learning so teams can turn raw data into models and insights.",
         answers: [0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         comment: "Runs on top of US hyperscalers, inheriting their extraterritorial exposure. EU deployment regions and an open-source lineage help, but sub-processors and support access remain outside the EU."
@@ -244,10 +244,85 @@ const COMPANIES = [
       },
       {
         name: "Trusted AI Platform",
-        type: "SaaS",
+        type: "Software",
         description: "A platform for developing and running artificial-intelligence workloads with an emphasis on data protection and controlled, auditable operation.",
         answers: [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 1],
         comment: "EU-hosted AI platform with European IP and strong data-control guarantees. Independent component-level audit and long-term reversibility attestation are the main areas still being reinforced."
+      }
+    ]
+  },
+
+  {
+    id: "coupa",
+    name: "Coupa Software",
+    initials: "CPA",
+    color: "#E85D04",
+    country: "United States",
+    countryCode: "US",
+    hq: "San Mateo, CA",
+    sector: "Procurement & spend management software",
+    description: "A cloud platform for business spend management, helping organisations run sourcing, procurement, invoicing and supplier processes from a single system.",
+    structural: {
+      answers: [0, 0, 0, 0, 0, 0, 1],
+      comment: "US-incorporated and majority-owned by a US private-equity firm since 2023, with governance and R&D anchored outside the EU. Directly exposed to the Cloud Act with no contractual mitigation. Minimal open-source governance offers the only partial counterweight."
+    },
+    products: [
+      {
+        name: "Coupa Procurement Intelligence",
+        type: "SaaS",
+        description: "An AI-augmented procurement module that aggregates public market and supplier data, recommends alternative suppliers and tracks price-evolution trends to support sourcing and purchasing decisions.",
+        answers: [0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0],
+        comment: "Business-spend-management platform whose community-intelligence features rely on cross-customer data aggregation, explicitly permitted under the ToS. Some EU hosting and export options exist, but support, IP and sub-processor governance remain firmly US-centred."
+      }
+    ]
+  },
+
+  {
+    id: "ivalua",
+    name: "Ivalua",
+    initials: "IVA",
+    color: "#2E6F95",
+    country: "France",
+    countryCode: "FR",
+    hq: "Paris",
+    sector: "Procurement & spend management software",
+    description: "A source-to-pay platform covering sourcing, supplier management, contract and invoice processing for large organisations running global procurement operations.",
+    structural: {
+      answers: [0, 1, 1, 1, 1, 1, 1],
+      comment: "French-founded source-to-pay specialist that has progressively re-centred around a US co-headquarters and non-EU institutional investors, tipping the majority of its revenue outside the EU. EU governance and R&D presence remain significant, keeping the profile mixed rather than fully offshore."
+    },
+    products: [
+      {
+        name: "Ivalua Smart Procurement Analytics",
+        type: "SaaS",
+        description: "A source-to-pay module that uses AI to aggregate public supplier and market data, surface alternative-supplier recommendations and monitor price-evolution trends across purchasing categories.",
+        answers: [1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1],
+        comment: "Source-to-pay suite offering an EU-hosting option and enterprise-grade export and breach-notification commitments, but sub-processor coverage, dependency audits and support are only partially EU-anchored — consistent with the group's dual-centre governance."
+      }
+    ]
+  },
+
+  {
+    id: "esker",
+    name: "Esker",
+    initials: "ESK",
+    color: "#0E7C61",
+    country: "France",
+    countryCode: "FR",
+    hq: "Lyon",
+    sector: "AI-powered procurement & finance automation",
+    description: "A European software publisher providing AI-driven automation for procurement, accounts payable and order management processes, used by finance and purchasing teams to streamline supplier interactions.",
+    structural: {
+      answers: [2, 2, 2, 1, 1, 2, 1],
+      comment: "Euronext-listed, Lyon-headquartered publisher with French management, board and R&D. A long-standing US subsidiary serving Americas customers introduces limited extraterritorial exposure, the main item still weighing on an otherwise strong sovereignty profile."
+    },
+    products: [
+      {
+        name: "Esker Procure-to-Pay AI Assistant",
+        type: "SaaS",
+        description: "An AI assistant embedded in Esker's procurement automation suite that aggregates public supplier and market data, suggests alternative suppliers and generates price-evolution dashboards to support purchasing teams.",
+        answers: [2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1],
+        comment: "AI-driven procurement and AP automation product built on EU-hosted infrastructure with sovereign key handling, exhaustive sub-processor disclosure and full audit rights. Residual exposure comes from the US subsidiary serving non-EU customers and a dependency-audit process still being formalised."
       }
     ]
   }
