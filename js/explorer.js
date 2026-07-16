@@ -11,7 +11,7 @@
 //            by its products/services as expandable sovereignty panels.
 // Ranking is driven by the selected criteria: each criterion is the sum of its
 // questionnaire answer levels (0/1/2); several criteria are averaged. No number
-// is ever shown — ties are conveyed with matching colours only.
+// is ever shown to the user.
 // ============================================================================
 
 const explore = {
@@ -205,11 +205,6 @@ function relevanceValue(company) {
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
-// Stable key used to detect equal-ranked (tied) companies without exposing figures.
-function relevanceKey(company) {
-  return relevanceValue(company).toFixed(4);
-}
-
 // ---------------------------------------------------------------------------
 // Criteria panel — every criterion is always visible and toggled in place.
 // ---------------------------------------------------------------------------
@@ -306,27 +301,10 @@ function filteredCompanies() {
     list = list.slice().sort((a, b) => {
       const diff = relevanceValue(b) - relevanceValue(a);
       if (Math.abs(diff) > 1e-9) return diff;
-      return 0;   // equal rank → keep stable (they are shown as tied)
+      return 0;   // equal rank → keep stable
     });
   }
   return list;
-}
-
-// Distinct colours, one per tied group, so equal-ranked suppliers can be
-// visually matched to each other (no numbers are ever shown).
-const TIE_PALETTE = ["#7C3AED", "#0EA5E9", "#F59E0B", "#DB2777", "#059669", "#EA580C", "#4F46E5", "#B91C1C"];
-
-// Map relevanceKey → colour, only for groups with more than one company,
-// ordered by rank (best-ranked tied group gets the first colour).
-function computeTieColors(list) {
-  const counts = {};
-  list.forEach(c => { const k = relevanceKey(c); counts[k] = (counts[k] || 0) + 1; });
-  const tiedKeys = Object.keys(counts)
-    .filter(k => counts[k] > 1)
-    .sort((a, b) => parseFloat(b) - parseFloat(a));
-  const map = {};
-  tiedKeys.forEach((k, i) => { map[k] = TIE_PALETTE[i % TIE_PALETTE.length]; });
-  return map;
 }
 
 // ---------------------------------------------------------------------------
@@ -362,9 +340,6 @@ function renderExplore() {
   const sortNote = document.getElementById("result-sort-note");
   if (sortNote) sortNote.hidden = explore.sortCats.length === 0;
 
-  // Identify tied ranks (only meaningful when criteria are active).
-  const tieColors = explore.sortCats.length > 0 ? computeTieColors(list) : {};
-
   results.className = "results-grid";
   results.innerHTML = "";
   if (list.length === 0) {
@@ -384,25 +359,17 @@ function renderExplore() {
     });
   } else {
     // One anonymous company label per supplier.
-    list.forEach(c => results.appendChild(companyLabelCard(c, tieColors[relevanceKey(c)] || null)));
+    list.forEach(c => results.appendChild(companyLabelCard(c)));
   }
 }
 
 // Anonymous company label — the default list card. No sovereignty content:
 // just the anonymised name, origin, keywords and a plain-language description.
 // The whole card opens the company's sovereignty profile.
-function companyLabelCard(company, tieColor) {
+function companyLabelCard(company) {
   const card = el("article", "card company-card");
   card.setAttribute("role", "button");
   card.setAttribute("tabindex", "0");
-
-  if (tieColor) {
-    card.style.borderTopColor = tieColor;
-    const badge = el("div", "tie-badge");
-    badge.style.setProperty("--tie-color", tieColor);
-    badge.innerHTML = `<span class="tie-dot"></span>Ex æquo — equal ranking`;
-    card.appendChild(badge);
-  }
 
   card.appendChild(el("h3", "card-title", escapeHtml(companyLabel(company))));
 

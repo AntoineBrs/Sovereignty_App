@@ -350,24 +350,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
 .gov-band.gov-mid  { color: #B8860B; background: rgba(184, 134, 11, .10); }
 .gov-band.gov-low  { color: #B23A3A; background: rgba(178, 58, 58, .08); }
 
-/* ---------- Tie (equal ranking) badge ---------- */
-/* --tie-color is set inline per tied group so companies that rank equally
-   on the selected criteria can be visually matched across cards. */
-.tie-badge {
-  align-self: flex-start;
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .4px;
-  color: var(--tie-color, var(--eu-blue-700));
-  background: transparent;
-  border: 1.5px solid var(--tie-color, var(--eu-blue));
-  border-radius: 999px; padding: 3px 10px 3px 8px;
-}
-.tie-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex: none;
-  background: var(--tie-color, var(--eu-blue));
-}
-
 /* ---------- Radar SVG ---------- */
 .radar { width: 100%; height: auto; overflow: visible; }
 .radar-ring { fill: none; stroke: #E6E9EF; stroke-width: 1; }
