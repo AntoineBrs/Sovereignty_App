@@ -490,10 +490,6 @@ body.modal-lock { overflow: hidden; }
 .btn.danger { color: var(--critical, #B23A3A); border-color: transparent; }
 .btn-ghost.danger:hover { color: #fff; background: #B23A3A; border-color: #B23A3A; }
 
-/* ---------- Data source badge ---------- */
-.db-status { font-size: 12px; font-weight: 600; letter-spacing: .2px; white-space: nowrap; }
-.db-status.local { color: #1E7A46; }
-
 /* ---------- Main navigation ---------- */
 .mainnav { background: var(--surface); border-bottom: 1px solid var(--line); }
 .mainnav-inner { display: flex; gap: 4px; }

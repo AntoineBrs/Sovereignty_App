@@ -64,7 +64,7 @@ const COMPANIES = [
         name: "Microsoft 365",
         type: "SaaS",
         description: "A cloud productivity suite bundling email, document editing, storage and collaboration tools accessed through the browser or desktop apps.",
-        answers: [0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+        answers: [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
         comment: "Productivity suite with EU hosting options and strong compliance certifications, but telemetry, sub-processors and IP ownership keep the offering under US jurisdiction."
       }
     ]
@@ -139,7 +139,7 @@ const COMPANIES = [
         name: "Databricks Data Intelligence Platform",
         type: "Software",
         description: "A unified analytics platform that brings together data engineering, data warehousing and machine learning so teams can turn raw data into models and insights.",
-        answers: [0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        answers: [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         comment: "Runs on top of US hyperscalers, inheriting their extraterritorial exposure. EU deployment regions and an open-source lineage help, but sub-processors and support access remain outside the EU."
       }
     ]
@@ -164,7 +164,7 @@ const COMPANIES = [
         name: "SAP S/4HANA Cloud",
         type: "SaaS",
         description: "A cloud enterprise-resource-planning suite covering finance, procurement, manufacturing and supply-chain processes for large organisations.",
-        answers: [2, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1],
+        answers: [1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1],
         comment: "EU-anchored ERP with strong European IP, but part of the cloud delivery relies on non-EU hyperscalers, introducing residual jurisdictional and sub-processor exposure."
       }
     ]
@@ -246,7 +246,7 @@ const COMPANIES = [
         name: "Trusted AI Platform",
         type: "Software",
         description: "A platform for developing and running artificial-intelligence workloads with an emphasis on data protection and controlled, auditable operation.",
-        answers: [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 1],
+        answers: [2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 1],
         comment: "EU-hosted AI platform with European IP and strong data-control guarantees. Independent component-level audit and long-term reversibility attestation are the main areas still being reinforced."
       }
     ]
@@ -271,7 +271,7 @@ const COMPANIES = [
         name: "Coupa Procurement Intelligence",
         type: "SaaS",
         description: "An AI-augmented procurement module that aggregates public market and supplier data, recommends alternative suppliers and tracks price-evolution trends to support sourcing and purchasing decisions.",
-        answers: [0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0],
+        answers: [1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0],
         comment: "Business-spend-management platform whose community-intelligence features rely on cross-customer data aggregation, explicitly permitted under the ToS. Some EU hosting and export options exist, but support, IP and sub-processor governance remain firmly US-centred."
       }
     ]
@@ -296,7 +296,7 @@ const COMPANIES = [
         name: "Ivalua Smart Procurement Analytics",
         type: "SaaS",
         description: "A source-to-pay module that uses AI to aggregate public supplier and market data, surface alternative-supplier recommendations and monitor price-evolution trends across purchasing categories.",
-        answers: [1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1],
+        answers: [2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1],
         comment: "Source-to-pay suite offering an EU-hosting option and enterprise-grade export and breach-notification commitments, but sub-processor coverage, dependency audits and support are only partially EU-anchored — consistent with the group's dual-centre governance."
       }
     ]
@@ -321,7 +321,7 @@ const COMPANIES = [
         name: "Esker Procure-to-Pay AI Assistant",
         type: "SaaS",
         description: "An AI assistant integrated into a procurement and accounts-payable automation suite, aggregating public supplier and market data, suggesting alternative suppliers and generating price-evolution dashboards to support purchasing teams.",
-        answers: [2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1],
+        answers: [2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1],
         comment: "AI-driven procurement and AP automation product built on EU-hosted infrastructure with sovereign key handling, exhaustive sub-processor disclosure and full audit rights. Residual exposure comes from the US subsidiary serving non-EU customers and a dependency-audit process still being formalised."
       }
     ]

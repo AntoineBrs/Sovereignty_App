@@ -12,18 +12,8 @@ document.addEventListener("DOMContentLoaded", boot);
 async function boot() {
   bindModal();
   APP.companies = await DB.loadCompanies();
-  setDbStatus();
   initExplore();
   renderExplore();
-}
-
-// Small badge in the header confirming the data source.
-function setDbStatus() {
-  const node = document.getElementById("db-status");
-  if (!node) return;
-  node.textContent = "● Local data";
-  node.classList.add("local");
-  node.title = "All supplier data is bundled locally — no external database or network call is used.";
 }
 
 // ---------------------------------------------------------------------------

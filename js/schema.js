@@ -282,7 +282,7 @@ const SCHEMAS = {
   },
 
   // --------------------------------------------------------------------------
-  // PRODUCT questionnaire — SaaS & Software (14 questions)
+  // PRODUCT questionnaire — SaaS & Software (12 questions)
   // --------------------------------------------------------------------------
   saas_software: {
     key: "saas_software",
@@ -291,24 +291,6 @@ const SCHEMAS = {
       {
         name: "Legal Framework & Compliance",
         questions: [
-          {
-            q: "Is the provider governed by European legislation regardless of where the product / service is located? Are disputes handled by European courts?",
-            guidance: "Identify the governing law and competent court regardless of where the product is operated.",
-            levels: [
-              "Contract governed by the law of a non-EU country. Disputes subject to a non-EU jurisdiction.",
-              "A Member State's law is mentioned, but reserve clauses allow switching jurisdiction in case of conflict.",
-              "Contract governed exclusively by EU Member State law. Competent jurisdiction within the EU, no referral clause."
-            ]
-          },
-          {
-            q: "Does the provider guarantee that no government or authority can access data, particularly under extraterritorial laws such as the Cloud Act or FISA?",
-            guidance: "Assess whether a foreign authority could legally compel access without European courts.",
-            levels: [
-              "Provider or parent company subject to extraterritorial laws (Cloud Act, FISA). No protective clause.",
-              "Structural exposure to extraterritorial laws, but contractual clauses to challenge requests and notify the client.",
-              "No exposure to extraterritorial laws. Responses only to European judicial orders."
-            ]
-          },
           {
             q: "Is all data entered in the product hosted on infrastructure subject to European legislation?",
             guidance: "Verify that data processed by the software is stored on EU-governed infrastructure, even if the publisher is not itself a host.",
